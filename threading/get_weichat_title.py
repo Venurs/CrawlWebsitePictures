@@ -34,10 +34,9 @@ def use_proxy(proxy_addr, url):
         print(use_proxy.__doc__)
         time.sleep(5)
     except Exception as e:
-        print("exception" + e)
+        print("exception" + str(e))
         print(use_proxy.__doc__)
         time.sleep(2)
-
 
 
 def get_articles(key, pagestart, pageend, proxy_addr):
@@ -66,7 +65,7 @@ def get_articles(key, pagestart, pageend, proxy_addr):
         print(get_articles.__doc__)
         time.sleep(5)
     except Exception as e:
-        print("exception" + e)
+        print("exception" + str(e))
         print(get_articles.__doc__)
         time.sleep(2)
 
@@ -80,13 +79,47 @@ def get_content(proxy_addr, article_list):
     """
     try:
         #  网页头部
-        html = "<!doctype html><html><head><title>微信文章网页</title></head><body>"
+        html = "<!DOCTYPE html><html><head><title>微信文章网页</title></head><body>"
         #  i为页码，j为对应页的第几篇文章
         for i in range(0, len(article_list)):
             for j in range(0, len(i)):
-                # 处理拿到的链接，将其中的"&amp;"去除掉
+                # 处理拿到的链接，将其中的"amp;"去除掉
                 url = article_list[i][j]
                 url = url.replace("amp;", "")
+                data = use_proxy(proxy_addr, url)
+                reg_title = r'<h2 class="rich_media_title" id="activity-name">?(.*)</h2>'
+                reg_content = '<div class="rich_media_content " id="js_content">?(.*)</div>'
+                title = re.findall(re.compile(reg_title), data)
+                content = re.findall(re.compile(reg_content), data)
+                path = "source/"+"页码" + i + "/" + title[0] + ".html"
+                file = open(path, mode="wb")
+                file.write(html.encode("utf-8"))
+                file.close()
+                file = open(path, mode="ab")
+                thistitle = "空标题"
+                thiscontent = "空内容"
+                if len(reg_title) != 0:
+                    thistitle = reg_title[0]
+                if len(reg_content) != 0:
+                    thiscontent = reg_content[0]
+                html_content = "<p>标题是" + thistitle + "</p><p>内容为：" + "</p></body></html>"
+                file.write(html_content.encode("utf-8"))
+                file.close()
+    except error.URLError as e:
+        if hasattr(e, "code"):
+            print(e.code)
+        if hasattr(e, "reason"):
+            print(e.reason)
+        print(get_content.__doc__)
+        time.sleep(5)
+    except Exception as e:
+        print("exception:" + str(e))
+        print(get_content.__doc__)
+        time.sleep(2)
+
+if __name__ == '__main__':
+
+
 
 
 
